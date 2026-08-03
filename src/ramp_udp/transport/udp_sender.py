@@ -3,7 +3,7 @@ from ramp_udp.protocol.serializer import PacketSerializer
 from ramp_udp.transport.socket_manager import SocketManager
 
 
-class Sender:
+class UDPSender:
     def __init__(self, host: str, port: int):
         self.socket_manager = SocketManager(host, port)
 
