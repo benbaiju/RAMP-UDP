@@ -13,3 +13,9 @@ class Sender:
 
     def close(self) -> None:
         self.socket_manager.close()
+
+    def receive(self):
+        return self.socket_manager.receive()
+
+    def set_timeout(self, timeout: float) -> None:
+        self.socket_manager.set_timeout(timeout)
