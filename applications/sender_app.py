@@ -9,8 +9,8 @@ def main():
 
     packet = Packet(
         message_type=MessageType.DATA,
-        sequence_number=1,
-        payload=b"Hello RAMP-UDP",
+        sequence_number=33,
+        payload=b"TEST",
     )
 
     print("\n RAMP-UDP Sender Application")
