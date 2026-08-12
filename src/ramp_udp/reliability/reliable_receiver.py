@@ -1,14 +1,14 @@
 from ramp_udp.protocol.message_types import MessageType
 from ramp_udp.protocol.packet import Packet
 from ramp_udp.reliability.ack import AckManager
-from ramp_udp.transport.receiver import Receiver
-from ramp_udp.transport.sender import Sender
+from ramp_udp.transport.udp_receiver import UDPReceiver
+from ramp_udp.transport.udp_sender import UDPSender
 
 
 class ReliableReceiver:
     def __init__(self, host: str, port: int):
-        self.receiver = Receiver(host, port)
-        self.sender = Sender(host, port)
+        self.receiver = UDPReceiver(host, port)
+        self.sender = UDPSender(host, port)
 
     def receive(self) -> Packet:
         packet, address = self.receiver.receive()

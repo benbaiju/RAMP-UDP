@@ -2,7 +2,6 @@ import socket
 
 from ramp_udp.protocol.constants import BUFFER_SIZE
 
-
 class SocketManager:
     def __init__(self, host: str, port: int):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
