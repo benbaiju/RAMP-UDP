@@ -13,3 +13,10 @@ class AckManager:
     @staticmethod
     def is_ack(packet: Packet) -> bool:
         return packet.message_type == MessageType.ACK
+
+    @staticmethod
+    def is_valid(packet: Packet, sequence_number: int) -> bool:
+        return (
+            AckManager.is_ack(packet)
+            and packet.sequence_number == sequence_number
+        )
