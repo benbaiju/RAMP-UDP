@@ -9,6 +9,7 @@ class Packet:
     message_type: MessageType
     sequence_number: int
     payload: bytes = field(default_factory=bytes)
+    authentication_tag: bytes = field(default_factory=bytes)
     magic: bytes = MAGIC_NUMBER
     version: int = PROTOCOL_VERSION
 

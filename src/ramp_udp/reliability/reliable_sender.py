@@ -1,5 +1,6 @@
 import time
 
+from ramp_udp.config.settings import get_secret_key
 from ramp_udp.protocol.constants import DEFAULT_TIMEOUT, MAX_RETRANSMISSIONS
 from ramp_udp.protocol.message_types import MessageType
 from ramp_udp.protocol.packet import Packet
@@ -8,12 +9,14 @@ from ramp_udp.reliability.ack import AckManager
 from ramp_udp.reliability.retransmission import RetransmissionManager
 from ramp_udp.reliability.sequence import SequenceGenerator
 from ramp_udp.reliability.timer import Timer
+from ramp_udp.security.hmac_auth import generate_hmac, verify_hmac
 from ramp_udp.transport.udp_sender import UDPSender
 
 
 class ReliableSender:
     def __init__(self, host: str, port: int):
         self.sender = UDPSender(host, port)
+        self.secret_key = get_secret_key()
         self.sequence_generator = SequenceGenerator()
         self.timer = Timer(DEFAULT_TIMEOUT)
 
@@ -23,6 +26,9 @@ class ReliableSender:
             message_type=MessageType.DATA,
             sequence_number=sequence_number,
             payload=payload,
+        )
+        packet.authentication_tag = generate_hmac(
+            PacketSerializer.authentication_data(packet), self.secret_key
         )
 
         retransmissions = RetransmissionManager(MAX_RETRANSMISSIONS)
@@ -71,6 +77,14 @@ class ReliableSender:
             try:
                 response = PacketSerializer.deserialize(data)
             except (ValueError, OSError):
+                continue
+
+            if not response.authentication_tag or not verify_hmac(
+                PacketSerializer.authentication_data(response),
+                response.authentication_tag,
+                self.secret_key,
+            ):
+                print("Invalid ACK authentication")
                 continue
 
             if AckManager.is_valid(response, sequence_number):

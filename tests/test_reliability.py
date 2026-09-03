@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+from ramp_udp.config.settings import DEVELOPMENT_SECRET_KEY
 from ramp_udp.protocol.constants import MAX_RETRANSMISSIONS
 from ramp_udp.protocol.message_types import MessageType
 from ramp_udp.protocol.packet import Packet
@@ -7,6 +8,7 @@ from ramp_udp.protocol.serializer import PacketSerializer
 from ramp_udp.reliability.ack import AckManager
 from ramp_udp.reliability.reliable_sender import ReliableSender
 from ramp_udp.reliability.sequence import SequenceGenerator
+from ramp_udp.security.hmac_auth import generate_hmac
 
 
 class TestSequenceGenerator:
@@ -35,7 +37,11 @@ class TestSequenceGenerator:
 
 
 def _serialized_ack(sequence_number: int) -> bytes:
-    return PacketSerializer.serialize(AckManager.create(sequence_number))
+    ack = AckManager.create(sequence_number)
+    ack.authentication_tag = generate_hmac(
+        PacketSerializer.authentication_data(ack), DEVELOPMENT_SECRET_KEY
+    )
+    return PacketSerializer.serialize(ack)
 
 
 class TestReliableSender:
