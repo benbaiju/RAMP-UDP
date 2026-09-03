@@ -37,6 +37,18 @@ class ReliableReceiver:
                 return self._pending_delivery.popleft()
 
             packet, address = self.receiver.receive()
+            print(
+                f"[receiver:wire] UDP packet received from {address}: "
+                f"bytes={PacketSerializer.serialize(packet).hex()}, "
+                f"length={len(PacketSerializer.serialize(packet))}"
+            )
+            print(f"[receiver:packet] Deserialized payload: {packet.payload!r}")
+            print(
+                f"[receiver:packet] type={packet.message_type.name}, "
+                f"sequence={packet.sequence_number}, "
+                f"payload_bytes={len(packet.payload)}, "
+                f"hmac_bytes={len(packet.authentication_tag)}"
+            )
 
             if self.authentication_enabled and (
                 not packet.authentication_tag or not verify_hmac(
@@ -48,6 +60,8 @@ class ReliableReceiver:
                 self.metrics.authentication_failures += 1
                 print("Invalid DATA authentication")
                 continue
+            if self.authentication_enabled:
+                print("[receiver:hmac] DATA HMAC verified successfully")
 
             if packet.message_type != MessageType.DATA:
                 return packet
@@ -121,6 +135,8 @@ class ReliableReceiver:
                 PacketSerializer.authentication_data(ack), self.secret_key
             )
         self.sender.send(ack, address)
+        serialized_ack = PacketSerializer.serialize(ack)
+        print(f"[receiver:wire] ACK sent: {serialized_ack.hex()}")
         if self._drop_first_ack:
             print(f"[demo] ACK sent sequence={packet.sequence_number}")
 
