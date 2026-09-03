@@ -1,3 +1,5 @@
+import os
+
 from ramp_udp.protocol.message_types import MessageType
 from ramp_udp.protocol.packet import Packet
 from ramp_udp.protocol.serializer import PacketSerializer
@@ -5,7 +7,14 @@ from ramp_udp.transport.udp_sender import UDPSender
 
 
 def main():
-    sender = UDPSender("127.0.0.1", 5000)
+    sender = UDPSender(
+        os.environ.get("RAMP_LOCAL_HOST", "127.0.0.1"),
+        int(os.environ.get("RAMP_LOCAL_PORT", "5000")),
+    )
+    destination = (
+        os.environ.get("RAMP_PEER_HOST", "127.0.0.1"),
+        int(os.environ.get("RAMP_PEER_PORT", "5001")),
+    )
 
     packet = Packet(
         message_type=MessageType.DATA,
@@ -29,7 +38,7 @@ def main():
     print(f"Packet Size     : {len(data)} bytes")
 
     print("\nSending packet...")
-    sender.send(packet, ("127.0.0.1", 5001))
+    sender.send(packet, destination)
     print(" Packet sent")
 
     sender.close()

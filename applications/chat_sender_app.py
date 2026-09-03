@@ -1,8 +1,13 @@
+import os
+
 from ramp_udp.reliability.reliable_sender import ReliableSender
 
-CHAT_HOST = "127.0.0.1"
-CHAT_LOCAL_PORT = 6000
-CHAT_PEER = ("127.0.0.1", 6001)
+CHAT_HOST = os.environ.get("RAMP_LOCAL_HOST", "127.0.0.1")
+CHAT_LOCAL_PORT = int(os.environ.get("RAMP_LOCAL_PORT", "6000"))
+CHAT_PEER = (
+    os.environ.get("RAMP_PEER_HOST", "127.0.0.1"),
+    int(os.environ.get("RAMP_PEER_PORT", "6001")),
+)
 
 
 def main() -> None:

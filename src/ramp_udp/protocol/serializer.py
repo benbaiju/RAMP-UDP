@@ -1,6 +1,12 @@
 import struct
 
-from ramp_udp.protocol.constants import HEADER_SIZE, HMAC_SIZE
+from ramp_udp.protocol.constants import (
+    HEADER_SIZE,
+    HMAC_SIZE,
+    MAGIC_NUMBER,
+    MAX_PAYLOAD_SIZE,
+    PROTOCOL_VERSION,
+)
 from ramp_udp.protocol.message_types import MessageType
 from ramp_udp.protocol.packet import Packet
 
@@ -22,6 +28,10 @@ class PacketSerializer:
 
     @classmethod
     def serialize(cls, packet: Packet) -> bytes:
+        if len(packet.payload) > MAX_PAYLOAD_SIZE:
+            raise ValueError("Payload exceeds the maximum size.")
+        if len(packet.authentication_tag) not in (0, HMAC_SIZE):
+            raise ValueError("Invalid authentication tag length.")
         return cls.authentication_data(packet) + packet.authentication_tag
 
     @classmethod
@@ -34,8 +44,19 @@ class PacketSerializer:
             data[:HEADER_SIZE],
         )
 
-        payload = data[HEADER_SIZE : HEADER_SIZE + payload_length]
-        remaining = data[HEADER_SIZE + payload_length :]
+        if magic != MAGIC_NUMBER:
+            raise ValueError("Invalid protocol magic number.")
+        if version != PROTOCOL_VERSION:
+            raise ValueError("Unsupported protocol version.")
+        if payload_length > MAX_PAYLOAD_SIZE:
+            raise ValueError("Payload exceeds the maximum size.")
+
+        expected_length = HEADER_SIZE + payload_length
+        if len(data) < expected_length:
+            raise ValueError("Packet payload is truncated.")
+
+        payload = data[HEADER_SIZE:expected_length]
+        remaining = data[expected_length:]
         if len(remaining) not in (0, HMAC_SIZE):
             raise ValueError("Invalid authentication tag length.")
 

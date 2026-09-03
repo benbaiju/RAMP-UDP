@@ -10,3 +10,7 @@ def get_secret_key() -> bytes:
 	if configured_key is None:
 		return DEVELOPMENT_SECRET_KEY
 	return configured_key.encode("utf-8")
+
+
+def authentication_enabled() -> bool:
+	return os.environ.get("RAMP_AUTH_ENABLED", "1") != "0"
