@@ -21,17 +21,8 @@ def main() -> None:
 
     try:
         while True:
-            print("[receiver] Waiting for the next DATA message...")
             packet = receiver.receive()
-            print(
-                f"[receiver] Packet delivered: type={packet.message_type.name}, "
-                f"sequence={packet.sequence_number}, "
-                f"payload_bytes={len(packet.payload)}"
-            )
             message = packet.payload.decode("utf-8")
-            print(f"[receiver] Message characters: {len(message)}")
-            print(f"[receiver] Message bytes: {len(packet.payload)}")
-            print(f"[receiver] Message content: {message!r}")
             print(f"Peer: {message}")
     except KeyboardInterrupt:
         print("\nExiting chat.")
@@ -40,7 +31,6 @@ def main() -> None:
     except OSError as error:
         print(f"\n[receiver] Socket error: {error}")
     finally:
-        print("[receiver] Closing receiver.")
         receiver.close()
 
 

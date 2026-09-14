@@ -11,6 +11,7 @@ from ramp_udp.reliability.sequence import SequenceGenerator
 from ramp_udp.reliability.timer import Timer
 from ramp_udp.security.hmac_auth import generate_hmac, verify_hmac
 from ramp_udp.transport.udp_sender import UDPSender
+from ramp_udp.utils.logger import debug
 from ramp_udp.utils.metrics import ProtocolMetrics
 
 
@@ -30,21 +31,12 @@ class ReliableSender:
             sequence_number=sequence_number,
             payload=payload,
         )
-        print(f"[sender:packet] Plaintext payload: {payload!r}")
         if self.authentication_enabled:
             packet.authentication_tag = generate_hmac(
                 PacketSerializer.authentication_data(packet), self.secret_key
             )
-            print(
-                f"[sender:hmac] Generated tag: "
-                f"{packet.authentication_tag.hex()}"
-            )
         else:
-            print("[sender:hmac] Disabled; no authentication tag generated")
-
-        serialized_packet = PacketSerializer.serialize(packet)
-        print(f"[sender:wire] Serialized packet bytes: {serialized_packet.hex()}")
-        print(f"[sender:wire] Serialized packet length: {len(serialized_packet)}")
+            debug("[sender:hmac] Disabled; no authentication tag generated")
 
         retransmissions = RetransmissionManager(MAX_RETRANSMISSIONS)
         started_at = time.monotonic()
@@ -52,7 +44,6 @@ class ReliableSender:
 
         print(f"Sending DATA sequence={sequence_number}")
         self.sender.send(packet, destination)
-        print("[sender:wire] Packet sent through UDP")
 
         while True:
             print(f"Waiting for ACK sequence={sequence_number}")
@@ -79,7 +70,6 @@ class ReliableSender:
                 f"(attempt {attempt})"
             )
             self.sender.send(packet, destination)
-            print("[sender:wire] Retransmitted packet through UDP")
             self.metrics.retransmissions += 1
 
     def _wait_for_ack(self, sequence_number: int) -> bool:
@@ -102,12 +92,6 @@ class ReliableSender:
             except (ValueError, OSError):
                 continue
 
-            print(
-                f"[sender:wire] Received ACK candidate: bytes={data.hex()}, "
-                f"sequence={response.sequence_number}, "
-                f"tag={response.authentication_tag.hex()}"
-            )
-
             if self.authentication_enabled and (
                 not response.authentication_tag or not verify_hmac(
                 PacketSerializer.authentication_data(response),
@@ -120,7 +104,7 @@ class ReliableSender:
                 continue
 
             if self.authentication_enabled:
-                print("[sender:hmac] ACK HMAC verified successfully")
+                debug("[sender:hmac] ACK HMAC verified successfully")
 
             if AckManager.is_valid(response, sequence_number):
                 return True

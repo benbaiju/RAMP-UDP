@@ -27,15 +27,8 @@ def main() -> None:
     try:
         while True:
             message = input("You: ").strip()
-            message_bytes = message.encode("utf-8")
-            print(
-                f"[sender] Input received: characters={len(message)}, "
-                f"bytes={len(message_bytes)}"
-            )
-            print(f"[sender] Message content: {message!r}")
 
             if message == "/quit":
-                print("[sender] Quit command received.")
                 print("Exiting chat.")
                 break
 
@@ -43,17 +36,12 @@ def main() -> None:
                 print("[sender] Empty message ignored.")
                 continue
 
-            print(
-                f"[sender] Sending {len(message_bytes)} bytes to "
-                f"{CHAT_PEER[0]}:{CHAT_PEER[1]}..."
-            )
             try:
-                success = sender.send(message_bytes, CHAT_PEER)
+                success = sender.send(message.encode("utf-8"), CHAT_PEER)
             except Exception as error:
                 print(f"[sender] Send error: {type(error).__name__}: {error}")
                 continue
 
-            print(f"[sender] Send result: success={success}")
             if success:
                 print("Message sent successfully.\n")
             else:
@@ -63,7 +51,6 @@ def main() -> None:
     except EOFError:
         print("\n[sender] Input stream closed.")
     finally:
-        print("[sender] Closing sender.")
         sender.close()
 
 

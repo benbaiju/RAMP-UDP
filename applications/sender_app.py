@@ -23,21 +23,12 @@ def main():
     )
 
     print("\n RAMP-UDP Sender Application")
-
-    print("\nCreating packet...")
-    print(" Packet created")
-
     print(f"Message Type    : {packet.message_type.name}")
     print(f"Sequence Number : {packet.sequence_number}")
     print(f"Payload Length  : {packet.payload_length} bytes")
     print(f"Payload         : {packet.payload.decode()}")
+    print(f"Packet Size     : {len(PacketSerializer.serialize(packet))} bytes")
 
-    print("\nSerializing packet...")
-    data = PacketSerializer.serialize(packet)
-    print(" Packet serialized")
-    print(f"Packet Size     : {len(data)} bytes")
-
-    print("\nSending packet...")
     sender.send(packet, destination)
     print(" Packet sent")
 

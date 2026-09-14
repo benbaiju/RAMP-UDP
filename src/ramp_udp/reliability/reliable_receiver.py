@@ -11,13 +11,18 @@ from ramp_udp.reliability.duplicate import DuplicateDetector
 from ramp_udp.security.hmac_auth import generate_hmac, verify_hmac
 from ramp_udp.transport.udp_receiver import UDPReceiver
 from ramp_udp.transport.udp_sender import UDPSender
+from ramp_udp.utils.logger import debug
 from ramp_udp.utils.metrics import ProtocolMetrics
 
 
 class ReliableReceiver:
     def __init__(self, host: str, port: int):
         self.receiver = UDPReceiver(host, port)
-        self.sender = UDPSender(host, port)
+        self.sender = UDPSender(
+            host,
+            port,
+            socket_manager=self.receiver.socket_manager,
+        )
         self.secret_key = get_secret_key()
         self.authentication_enabled = authentication_enabled()
         self.metrics = ProtocolMetrics()
@@ -37,17 +42,10 @@ class ReliableReceiver:
                 return self._pending_delivery.popleft()
 
             packet, address = self.receiver.receive()
-            print(
-                f"[receiver:wire] UDP packet received from {address}: "
-                f"bytes={PacketSerializer.serialize(packet).hex()}, "
-                f"length={len(PacketSerializer.serialize(packet))}"
-            )
-            print(f"[receiver:packet] Deserialized payload: {packet.payload!r}")
-            print(
+            debug(
                 f"[receiver:packet] type={packet.message_type.name}, "
                 f"sequence={packet.sequence_number}, "
-                f"payload_bytes={len(packet.payload)}, "
-                f"hmac_bytes={len(packet.authentication_tag)}"
+                f"payload_bytes={len(packet.payload)}"
             )
 
             if self.authentication_enabled and (
@@ -61,7 +59,7 @@ class ReliableReceiver:
                 print("Invalid DATA authentication")
                 continue
             if self.authentication_enabled:
-                print("[receiver:hmac] DATA HMAC verified successfully")
+                debug("[receiver:hmac] DATA HMAC verified successfully")
 
             if packet.message_type != MessageType.DATA:
                 return packet
@@ -135,10 +133,7 @@ class ReliableReceiver:
                 PacketSerializer.authentication_data(ack), self.secret_key
             )
         self.sender.send(ack, address)
-        serialized_ack = PacketSerializer.serialize(ack)
-        print(f"[receiver:wire] ACK sent: {serialized_ack.hex()}")
-        if self._drop_first_ack:
-            print(f"[demo] ACK sent sequence={packet.sequence_number}")
+        debug(f"ACK sent sequence={packet.sequence_number}")
 
     def _should_drop_ack(self) -> bool:
         if not self._drop_first_ack or self._first_ack_dropped:

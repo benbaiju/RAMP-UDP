@@ -14,10 +14,6 @@ def main():
     packet, address = receiver.receive()
 
     print(f"Packet received from {address}")
-
-    print("\nDeserializing packet...")
-    print(" Packet deserialized")
-
     print(f"Magic           : {packet.magic.decode()}")
     print(f"Version         : {packet.version}")
     print(f"Message Type    : {packet.message_type.name}")
