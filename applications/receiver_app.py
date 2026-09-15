@@ -1,19 +1,19 @@
+import os
+
 from ramp_udp.transport.udp_receiver import UDPReceiver
 
 
 def main():
-    receiver = UDPReceiver("127.0.0.1", 5001)
+    host = os.environ.get("RAMP_BIND_HOST", "127.0.0.1")
+    port = int(os.environ.get("RAMP_PORT", "5001"))
+    receiver = UDPReceiver(host, port)
 
     print("\n RAMP-UDP Receiver")
-    print("\nListening on 127.0.0.1:5001...\n")
+    print(f"\nListening on {host}:{port}...\n")
 
     packet, address = receiver.receive()
 
     print(f"Packet received from {address}")
-
-    print("\nDeserializing packet...")
-    print(" Packet deserialized")
-
     print(f"Magic           : {packet.magic.decode()}")
     print(f"Version         : {packet.version}")
     print(f"Message Type    : {packet.message_type.name}")
