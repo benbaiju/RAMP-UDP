@@ -53,8 +53,7 @@ def main() -> int:
     print(f"Tampered payload : {packet.payload!r}  (one byte flipped after HMAC)")
     print(f"HMAC calculated  : before payload modification")
     print(f"HMAC sent        : {hmac_before_tamper.hex()}  (unchanged original tag)")
-    print("Receiver should print: Invalid DATA authentication")
-    print("Receiver should NOT deliver the tampered payload.")
+
 
     sender = UDPSender(LOCAL_HOST, LOCAL_PORT)
     try:
