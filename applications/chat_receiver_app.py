@@ -13,7 +13,6 @@ def main() -> None:
         f"[receiver] Authentication: "
         f"{os.environ.get('RAMP_AUTH_ENABLED', '1') != '0'}"
     )
-    print("[receiver] Decryption: not applicable; payload is plaintext")
     receiver = ReliableReceiver(CHAT_HOST, CHAT_PORT)
 
     print("\n RAMP-UDP Chat")
